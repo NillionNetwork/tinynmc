@@ -1,7 +1,7 @@
 tinynmc
 =============================
 
-a minimal Python implementation of [nmc (Nil Message Compute)](https://docsend.com/view/7bkgvzagr6ifhwrc)
+a minimal Python implementation of `nmc (Nil Message Compute) <https://docsend.com/view/7bkgvzagr6ifhwrc>`__
 
 |pypi|
 
