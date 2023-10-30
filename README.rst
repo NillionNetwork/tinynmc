@@ -1,3 +1,4 @@
+=======
 tinynmc
 =======
 
@@ -10,10 +11,10 @@ Minimal pure-Python implementation of `nmc (Nil Message Compute) <https://docsen
    :alt: PyPI version and link.
 
 Purpose
-=======
+-------
 
-Installation and usage
-======================
+Installation and Usage
+----------------------
 
 This library is available as a `package on PyPI <https://pypi.org/project/tinynmc>`__:
 
@@ -28,7 +29,7 @@ The library can be imported in the usual way:
     import tinynmc
 
 Basic Example
--------------
+^^^^^^^^^^^^^
 
 This example involves three dealers (parties contributing data) and three nodes (computation parties):
 
@@ -82,16 +83,23 @@ The result can be reconstructed via summation from the result shares received fr
     >>> sum([result_share_at_node_0, result_share_at_node_1, result_share_at_node_2])
 
 Development
-===========
+-----------
 
 Documentation
--------------
+^^^^^^^^^^^^^
+The documentation can be generated automatically from the source files using `Sphinx <https://www.sphinx-doc.org>`__:
+
+.. code-block:: bash
+
+    python -m pip install .[docs]
+    cd docs
+    sphinx-apidoc -f -E --templatedir=_templates -o _source .. && make html
 
 Testing
--------
+^^^^^^^
 
 Contributions
--------------
+^^^^^^^^^^^^^
 
 Publishing
-----------
+^^^^^^^^^^
