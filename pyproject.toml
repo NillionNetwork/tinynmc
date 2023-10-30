@@ -12,6 +12,9 @@ authors = [
 ]
 readme = "README.rst"
 requires-python = ">=3.7"
+dependencies = [
+    "modulo~=2.1"
+]
 
 [project.urls]
 Repository = "https://github.com/nillion-oss/tinynmc"
