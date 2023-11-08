@@ -4,11 +4,15 @@ tinynmc
 
 Minimal pure-Python implementation of a secure multi-party computation (MPC) protocol for evaluating arithmetic sum-of-products expressions via a non-interactive computation phase.
 
-|pypi|
+|pypi| |readthedocs|
 
 .. |pypi| image:: https://badge.fury.io/py/tinynmc.svg
    :target: https://badge.fury.io/py/tinynmc
    :alt: PyPI version and link.
+
+.. |readthedocs| image:: https://readthedocs.org/projects/tinynmc/badge/?version=latest
+   :target: https://tinynmc.readthedocs.io/en/latest/?badge=latest
+   :alt: Read the Docs documentation status.
 
 Installation and Usage
 ----------------------
@@ -135,7 +139,7 @@ This library can be published as a `package on PyPI <https://pypi.org/project/ti
 
     python -m pip install .[publish]
 
-Ensure that the correct version number appears in ``pyproject.toml``. Create and push a tag for this version (replacing ``?.?.?`` with the version number):
+Ensure that the correct version number appears in ``pyproject.toml``, and that any links in this README document to the Read the Docs documentation of this package (or its dependencies) have appropriate version numbers. Also ensure that the Read the Docs project for this library has an `automation rule <https://docs.readthedocs.io/en/stable/automation-rules.html>`__ that activates and sets as the default all tagged versions. Create and push a tag for this version (replacing ``?.?.?`` with the version number):
 
 .. code-block:: bash
 
