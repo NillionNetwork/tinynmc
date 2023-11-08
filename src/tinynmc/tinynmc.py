@@ -13,6 +13,12 @@ from modulo import mod
 def _prod(iterable):
     return functools.reduce(operator.mul, iterable)
 
+def _merge(d, d_):
+    d__ = {}
+    d__.update(d)
+    d__.update(d_)
+    return d__
+
 def _shares(s, modulus, quantity) -> list[mod]:
     ss = []
     for _ in range(quantity - 1):
@@ -108,8 +114,7 @@ class node:
         """
         # Combine all submitted coordinate-particle pair dictionaries
         # into a single dictionary.
-        # pylint: disable=consider-using-generator
-        mfs = functools.reduce((lambda mfs, mfs_: mfs | mfs_), mfss)
+        mfs = functools.reduce(_merge, mfss)
 
         # Compute this node's share of the overall sum of products.
         return sum([
