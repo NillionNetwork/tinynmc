@@ -117,6 +117,7 @@ class node:
         mfs = functools.reduce(_merge, mfss)
 
         # Compute this node's share of the overall sum of products.
+        # pylint: disable=consider-using-generator
         return sum([
             self._shares[term_index]
             *
