@@ -1,6 +1,7 @@
 """
-Minimal pure-Python implementation of
-`nmc (Nil Message Compute) <https://docsend.com/view/7bkgvzagr6ifhwrc>`__.
+Minimal pure-Python implementation of a secure multi-party computation
+(MPC) protocol for evaluating arithmetic sum-of-products expressions via
+a non-interactive computation phase.
 """
 from __future__ import annotations
 import doctest

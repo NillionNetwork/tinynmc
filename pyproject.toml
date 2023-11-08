@@ -2,8 +2,9 @@
 name = "tinynmc"
 version = "0.1.0"
 description = """\
-    Minimal pure-Python implementation of the \
-    Nil Message Compute (NMC) protocol.\
+    Minimal pure-Python implementation of a secure multi-party computation \
+    (MPC) protocol for evaluating arithmetic sum-of-products expressions via \
+    a non-interactive computation phase.\
     """
 license = {text = "MIT"}
 authors = [
@@ -44,7 +45,7 @@ publish = [
 
 [build-system]
 requires = [
-    "setuptools~=67.6"
+    "setuptools>=68.0"
 ]
 build-backend = "setuptools.build_meta"
 

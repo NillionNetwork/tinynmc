@@ -2,16 +2,13 @@
 tinynmc
 =======
 
-Minimal pure-Python implementation of `nmc (Nil Message Compute) <https://docsend.com/view/7bkgvzagr6ifhwrc>`__.
+Minimal pure-Python implementation of a secure multi-party computation (MPC) protocol for evaluating arithmetic sum-of-products expressions via a non-interactive computation phase.
 
 |pypi|
 
 .. |pypi| image:: https://badge.fury.io/py/tinynmc.svg
    :target: https://badge.fury.io/py/tinynmc
    :alt: PyPI version and link.
-
-Purpose
--------
 
 Installation and Usage
 ----------------------
@@ -100,6 +97,36 @@ Testing
 
 Contributions
 ^^^^^^^^^^^^^
+In order to contribute to the source code, open an issue or submit a pull request on the `GitHub page <https://github.com/nillion-oss/tinynmc>`__ for this library.
+
+Versioning
+^^^^^^^^^^
+The version number format for this library and the changes to the library associated with version number increments conform with `Semantic Versioning 2.0.0 <https://semver.org/#semantic-versioning-200>`__.
 
 Publishing
 ^^^^^^^^^^
+This library can be published as a `package on PyPI <https://pypi.org/project/tinynmc>`__ by a package maintainer. First, install the dependencies required for packaging and publishing:
+
+.. code-block:: bash
+
+    python -m pip install .[publish]
+
+Ensure that the correct version number appears in ``pyproject.toml``. Create and push a tag for this version (replacing ``?.?.?`` with the version number):
+
+.. code-block:: bash
+
+    git tag ?.?.?
+    git push origin ?.?.?
+
+Remove any old build/distribution files. Then, package the source into a distribution archive:
+
+.. code-block:: bash
+
+    rm -rf build dist src/*.egg-info
+    python -m build --sdist --wheel .
+
+Finally, upload the package distribution archive to `PyPI <https://pypi.org>`__:
+
+.. code-block:: bash
+
+    python -m twine upload dist/*
