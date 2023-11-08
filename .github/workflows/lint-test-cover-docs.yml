@@ -1,0 +1,27 @@
+name: lint-test-cover-docs
+on:
+  push
+jobs:
+  lint_test_cover_docs:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
+    name: "Python ${{ matrix.python-version }}"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Python.
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: x64
+      - name: Lint and test module.
+        run: |
+          pip install -U .[lint,test]
+          python -m pylint tinynmc # Check against linting rules.
+          python -m pytest # Run tests.
+          python src/tinynmc/tinynmc.py -v # Run tests via execution.
+      - name: Test auto-generation of documentation.
+        run: |
+          pip install -U .[docs]
+          cd docs && sphinx-apidoc -f -E --templatedir=_templates -o _source .. && make html && cd ..

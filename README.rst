@@ -4,7 +4,7 @@ tinynmc
 
 Minimal pure-Python implementation of a secure multi-party computation (MPC) protocol for evaluating arithmetic sum-of-products expressions via a non-interactive computation phase.
 
-|pypi| |readthedocs|
+|pypi| |readthedocs| |actions|
 
 .. |pypi| image:: https://badge.fury.io/py/tinynmc.svg
    :target: https://badge.fury.io/py/tinynmc
@@ -13,6 +13,10 @@ Minimal pure-Python implementation of a secure multi-party computation (MPC) pro
 .. |readthedocs| image:: https://readthedocs.org/projects/tinynmc/badge/?version=latest
    :target: https://tinynmc.readthedocs.io/en/latest/?badge=latest
    :alt: Read the Docs documentation status.
+
+.. |actions| image:: https://github.com/nillion-oss/tinynmc/workflows/lint-test-cover-docs/badge.svg
+   :target: https://github.com/nillion-oss/tinynmc/actions/workflows/lint-test-cover-docs.yml
+   :alt: GitHub Actions status.
 
 Installation and Usage
 ----------------------
