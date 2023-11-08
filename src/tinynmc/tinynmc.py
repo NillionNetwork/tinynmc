@@ -143,8 +143,8 @@ def preprocessing(signature, nodes):
         for exponent in randoms
     ]))
 
-    for i in range(len(nodes)):
-        nodes[i].correlate(signature, node_to_exponent_shares[i], node_to_factor_shares[i])
+    for (i, n) in enumerate(nodes):
+        n.correlate(signature, node_to_exponent_shares[i], node_to_factor_shares[i])
 
 def masked_factors(coords_to_values, masks_from_nodes):
     """
