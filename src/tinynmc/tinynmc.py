@@ -7,7 +7,7 @@ from __future__ import annotations
 import doctest
 import operator
 import functools
-import random
+import secrets
 from modulo import mod
 
 def _prod(iterable):
@@ -22,7 +22,8 @@ def _merge(d, d_):
 def _shares(s, modulus, quantity) -> list[mod]:
     ss = []
     for _ in range(quantity - 1):
-        ss.append(mod(random.randint(0, modulus - 1), modulus))
+        # Use rejection sampling to obtain a share value.
+        ss.append(mod(secrets.randbelow(modulus), modulus))
 
     return [mod(s, modulus) - sum(ss)] + ss
 
@@ -107,8 +108,9 @@ class node:
         """
         Instantiate an object that maintains the state of a node.
         """
-        (self.p, self.q) = (4215209819, 2107604909)
-        self.g = mod(3844384293, self.p)
+        self.q = 170141183460469231731687303715884098003
+        self.p = 340282366920938463463374607431768196007
+        self.g = mod(205482397601703717038466705921080247554, self.p)
         self._masks = None
         self._shares = None
 
@@ -163,11 +165,12 @@ def preprocess(signature, nodes):
     Simulate a preprocessing phase for the supplied signature and collection
     of nodes.
     """
-    (p, q) = (4215209819, 2107604909)
-    g = mod(3844384293, p)
+    q = 170141183460469231731687303715884098003
+    p = 340282366920938463463374607431768196007
+    g = mod(205482397601703717038466705921080247554, p)
 
     randoms = [
-        random.randint(0, (q * 2) - 1)
+        secrets.randbelow(q * 2) # Use rejection sampling.
         for term_index in range(len(signature))
     ]
     node_to_exponent_shares = list(zip(*[
