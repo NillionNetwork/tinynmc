@@ -32,50 +32,49 @@ The library can be imported in the usual way:
 Basic Example
 ^^^^^^^^^^^^^
 
-This example involves three dealers (parties contributing data) and three nodes (computation parties):
+This example involves three contributors (parties submitting private input values) and three nodes (parties performing a computation):
 
 .. code-block:: python
 
     >>> nodes = [node(), node(), node()]
 
-The overall expression being computed is ``(1 * 2 * 3) + (4 * 5)``. First, the dealers agree on a workflow signature. The signature lists the number of factors in each term:
+The overall expression being computed is ``(1 * 2 * 3) + (4 * 5)``. First, the contributors agree on a workflow signature. The signature lists the number of factors in each term:
 
 .. code-block:: python
 
     >>> signature = [3, 2]
 
-The signature is shared with every node so that it can perform its preprocessing steps. Next, each factor in the workflow is contributed by one of three dealers **A**, **B**, or **C**, with the ownership pattern (**A** * **B** * **C**) + (**A** * **B**). Each factor is tracked according to its ``(term_index, factor_index)`` coordinate: ``((0, 0) * (0, 1)) + ((1, 0) * (1, 1) * (1, 2))``.
+The signature is shared with every node so that it can perform its preprocessing steps. Next, each factor in the workflow is contributed by one of three contributors **A**, **B**, or **C**, with the ownership pattern (**A** * **B** * **C**) + (**A** * **B**). Each factor is tracked according to its ``(term_index, factor_index)`` coordinate: ``((0, 0) * (0, 1)) + ((1, 0) * (1, 1) * (1, 2))``.
 
-Each dealer converts its coordinate-value pairs into particles by (1) requesting the multiplicative masks for each coordinate, and (2) masking its factors at each coordinate using those masks:
+Each contributor converts its coordinate-value pairs into masked factors by (1) requesting the multiplicative masks for each coordinate, and (2) masking its factors at each coordinate using those masks:
 
 .. code-block:: python
 
     >>> coords_to_values_a = {(0, 0): 1, (1, 0): 4}
     >>> masks_from_nodes_to_a = [node.masks(coords_to_values_a.keys()) for node in nodes]
-    >>> masked_factors_a = particles(coords_to_values_a, masks_from_nodes_to_a)
+    >>> masked_factors_a = masked_factors(coords_to_values_a, masks_from_nodes_to_a)
 
     >>> coords_to_values_b = {(0, 1): 2, (1, 1): 5}
     >>> masks_from_nodes_to_b = [node.masks(coords_to_values_b.keys()) for node in nodes]
-    >>> masked_factors_b = particles(coords_to_values_b, masks_from_nodes_to_b)
+    >>> masked_factors_b = masked_factors(coords_to_values_b, masks_from_nodes_to_b)
 
     >>> coords_to_values_c = {(0, 2): 3}
     >>> masks_from_nodes_to_c = [node.masks(coords_to_values_c.keys()) for node in nodes]
-    >>> masked_factors_c = particles(coords_to_values_c, masks_from_nodes_to_c)
+    >>> masked_factors_c = masked_factors(coords_to_values_c, masks_from_nodes_to_c)
 
-
-Each dealer sends all of its particles to every node, so every node receives all the masks from all the dealers:
+Each contributor broadcasts all of its masked factors to every node, so every node receives all of the masked factors from all of the contributors:
 
 .. code-block:: python
 
-    >>> masked_factors_received = [masked_factors_a, masked_factors_b, masked_factors_c]
+    >>> broadcast = [masked_factors_a, masked_factors_b, masked_factors_c]
 
 Every node computes its result share:
 
 .. code-block:: python
 
-    >>> result_share_at_node_0 = nodes[0].compute(signature, masked_factors_received)
-    >>> result_share_at_node_1 = nodes[1].compute(signature, masked_factors_received)
-    >>> result_share_at_node_2 = nodes[2].compute(signature, masked_factors_received)
+    >>> result_share_at_node_0 = nodes[0].compute(signature, broadcast)
+    >>> result_share_at_node_1 = nodes[1].compute(signature, broadcast)
+    >>> result_share_at_node_2 = nodes[2].compute(signature, broadcast)
 
 The result can be reconstructed via summation from the result shares received from the nodes:
 
