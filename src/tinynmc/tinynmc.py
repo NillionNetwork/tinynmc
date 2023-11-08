@@ -10,8 +10,21 @@ import functools
 import random
 from modulo import mod
 
+def _prod(iterable):
+    return functools.reduce(operator.mul, iterable)
+
+def _shares(s, modulus, quantity=3) -> list[mod]:
+    ss = []
+    for _ in range(quantity - 1):
+        ss.append(mod(random.randint(0, modulus - 1), modulus))
+    return [mod(s, modulus) - sum(ss)] + ss
+
 class node:
-    def __init__(self, n: int):
+    """
+    Data structure for maintaining the information associated with a node in
+    a protocol instantiation.
+    """
+    def __init__(self):
         """
         Instantiate an object that maintains the state of a node
         (out of ``n`` nodes in a protocol instance).
@@ -29,7 +42,7 @@ class node:
         for (term_index, factor_count) in enumerate(signature):
             factors = [
                 self.g ** int(l)
-                for l in shares(
+                for l in _shares(
                     -int(exponents[term_index]),
                     self.q * 2,
                     factor_count
@@ -39,7 +52,7 @@ class node:
             for factor_index in range(factor_count):
                 self._masks[(term_index, factor_index)] = factors[factor_index]
 
-    def masks(self, signature, coords_from_dealer) -> dict[tuple[int, int], mod]:
+    def masks(self, coords_from_dealer) -> dict[tuple[int, int], mod]:
         """
         Return a dictionary mapping a set of ``(term_index, factor_index)``
         coordinates to their corresponding masks.
@@ -52,13 +65,14 @@ class node:
         """
         # Combine all submitted coordinate-particle pair dictionaries
         # into a single dictionary.
+        # pylint: disable=consider-using-generator
         mfs = functools.reduce((lambda mfs, mfs_: mfs | mfs_), mfss)
 
         # Compute this node's share of the overall sum of products.
         return sum([
             self._shares[term_index]
             *
-            (lambda iterable: functools.reduce(operator.mul, iterable))(
+            _prod(
                 mfs[(term_index, factor_index)]
                 for factor_index in range(factor_quantity)
             )
@@ -72,7 +86,7 @@ def particles(coords_to_values, masks_from_nodes):
     coordinate.
     """
     return {
-        coords: value * prd([
+        coords: value * _prod([
             coords_to_masks[coords]
             for coords_to_masks in masks_from_nodes
         ])

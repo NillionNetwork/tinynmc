@@ -32,7 +32,7 @@ This example involves three dealers (parties contributing data) and three nodes 
 
 .. code-block:: python
 
-    >>> nodes = [node(3), node(3), node(3)]
+    >>> nodes = [node(), node(), node()]
 
 The overall expression being computed is ``(1 * 2 * 3) + (4 * 5)``. First, the dealers agree on a workflow signature. The signature lists the number of factors in each term:
 
@@ -47,15 +47,15 @@ Each dealer converts its coordinate-value pairs into particles by (1) requesting
 .. code-block:: python
 
     >>> coords_to_values_a = {(0, 0): 1, (1, 0): 4}
-    >>> masks_from_nodes_to_a = [node.masks(signature, coords_to_values_a.keys()) for node in nodes]
+    >>> masks_from_nodes_to_a = [node.masks(coords_to_values_a.keys()) for node in nodes]
     >>> masked_factors_a = particles(coords_to_values_a, masks_from_nodes_to_a)
 
     >>> coords_to_values_b = {(0, 1): 2, (1, 1): 5}
-    >>> masks_from_nodes_to_b = [node.masks(signature, coords_to_values_b.keys()) for node in nodes]
+    >>> masks_from_nodes_to_b = [node.masks(coords_to_values_b.keys()) for node in nodes]
     >>> masked_factors_b = particles(coords_to_values_b, masks_from_nodes_to_b)
 
     >>> coords_to_values_c = {(0, 2): 3}
-    >>> masks_from_nodes_to_c = [node.masks(signature, coords_to_values_c.keys()) for node in nodes]
+    >>> masks_from_nodes_to_c = [node.masks(coords_to_values_c.keys()) for node in nodes]
     >>> masked_factors_c = particles(coords_to_values_c, masks_from_nodes_to_c)
 
 
@@ -81,6 +81,11 @@ The result can be reconstructed via summation from the result shares received fr
 
 Development
 -----------
+All installation and development dependencies are fully specified in ``pyproject.toml``. The ``project.optional-dependencies`` object is used to `specify optional requirements <https://peps.python.org/pep-0621>`__ for various development tasks. This makes it possible to specify additional options (such as ``docs``, ``lint``, and so on) when performing installation using `pip <https://pypi.org/project/pip>`__:
+
+.. code-block:: bash
+
+    python -m pip install .[docs,lint]
 
 Documentation
 ^^^^^^^^^^^^^
@@ -92,8 +97,27 @@ The documentation can be generated automatically from the source files using `Sp
     cd docs
     sphinx-apidoc -f -E --templatedir=_templates -o _source .. && make html
 
-Testing
-^^^^^^^
+Testing and Conventions
+^^^^^^^^^^^^^^^^^^^^^^^
+All unit tests are executed and their coverage is measured when using `pytest <https://docs.pytest.org>`__ (see the ``pyproject.toml`` file for configuration details):
+
+.. code-block:: bash
+
+    python -m pip install .[test]
+    python -m pytest
+
+Alternatively, all unit tests are included in the module itself and can be executed using `doctest <https://docs.python.org/3/library/doctest.html>`__:
+
+.. code-block:: bash
+
+    python src/tinynmc/tinynmc.py -v
+
+Style conventions are enforced using `Pylint <https://pylint.readthedocs.io>`__:
+
+.. code-block:: bash
+
+    python -m pip install .[lint]
+    python -m pylint src/tinynmc
 
 Contributions
 ^^^^^^^^^^^^^
