@@ -32,47 +32,54 @@ The library can be imported in the usual way:
 .. code-block:: python
 
     import tinynmc
+    from tinynmc import *
 
 Basic Example
 ^^^^^^^^^^^^^
 
-This example involves three contributors (parties submitting private input values) and three nodes (parties performing a computation):
+This example involves three contributors **a**, **b**, and **c** (parties submitting private input values) and three nodes **0**, **1**, and **2** (parties performing a computation):
 
 .. code-block:: python
 
     >>> nodes = [node(), node(), node()]
 
-The overall expression being computed is ``(1 * 2 * 3) + (4 * 5)``. First, the contributors agree on a workflow signature. The signature lists the number of factors in each term:
+The overall sum-of-products expression being computed is ``(1 * 2 * 3) + (4 * 5)``. First, the contributors agree on a workflow signature. The signature lists the number of factors in each term:
 
 .. code-block:: python
 
     >>> signature = [3, 2]
 
-The signature is shared with every node so that it can perform its preprocessing steps. Next, each factor in the workflow is contributed by one of three contributors **A**, **B**, or **C**, with the ownership pattern (**A** * **B** * **C**) + (**A** * **B**). Each factor is tracked according to its ``(term_index, factor_index)`` coordinate: ``((0, 0) * (0, 1)) + ((1, 0) * (1, 1) * (1, 2))``.
+The signature must be shared with every node so that the nodes can collectively perform the preprocessing phase (this can be accomplished using any MPC protocol that supports multiplication of secret-shared values, such as the `SPDZ <https://eprint.iacr.org/2011/535>`__ protocol that is implemented as part of `TinySMPC <https://github.com/kennysong/tinysmpc>`__ library):
 
-Each contributor converts its coordinate-value pairs into masked factors by (1) requesting the multiplicative masks for each coordinate, and (2) masking its factors at each coordinate using those masks:
+.. code-block:: python
+
+    >>> preprocess(signature, nodes)
+
+Next, each factor in the workflow is contributed by one of three contributors **a**, **b**, or **c**, with the ownership pattern ``(a * b * c) + (a * b)``. Each factor is referenced by the contributors according to its ``(term_index, factor_index)`` coordinate within the overall expression: ``((0, 0) * (0, 1)) + ((1, 0) * (1, 1) * (1, 2))``.
+
+Each contributor can convert its coordinate-value pairs into masked factors by (1) requesting the multiplicative shares of the masks for each coordinate, and (2) masking its factors at each coordinate using those masks:
 
 .. code-block:: python
 
     >>> coords_to_values_a = {(0, 0): 1, (1, 0): 4}
-    >>> masks_from_nodes_to_a = [node.masks(coords_to_values_a.keys()) for node in nodes]
-    >>> masked_factors_a = masked_factors(coords_to_values_a, masks_from_nodes_to_a)
+    >>> masks_from_nodes_a = [node.masks(coords_to_values_a.keys()) for node in nodes]
+    >>> masked_factors_a = masked_factors(coords_to_values_a, masks_from_nodes_a)
 
     >>> coords_to_values_b = {(0, 1): 2, (1, 1): 5}
-    >>> masks_from_nodes_to_b = [node.masks(coords_to_values_b.keys()) for node in nodes]
-    >>> masked_factors_b = masked_factors(coords_to_values_b, masks_from_nodes_to_b)
+    >>> masks_from_nodes_b = [node.masks(coords_to_values_b.keys()) for node in nodes]
+    >>> masked_factors_b = masked_factors(coords_to_values_b, masks_from_nodes_b)
 
     >>> coords_to_values_c = {(0, 2): 3}
-    >>> masks_from_nodes_to_c = [node.masks(coords_to_values_c.keys()) for node in nodes]
-    >>> masked_factors_c = masked_factors(coords_to_values_c, masks_from_nodes_to_c)
+    >>> masks_from_nodes_c = [node.masks(coords_to_values_c.keys()) for node in nodes]
+    >>> masked_factors_c = masked_factors(coords_to_values_c, masks_from_nodes_c)
 
-Each contributor broadcasts all of its masked factors to every node, so every node receives all of the masked factors from all of the contributors:
+Each contributor then broadcasts all of its masked factors to every node, so every node receives all of the masked factors from all of the contributors:
 
 .. code-block:: python
 
     >>> broadcast = [masked_factors_a, masked_factors_b, masked_factors_c]
 
-Every node computes its result share:
+Then, every node can locally compute its share of the overall result:
 
 .. code-block:: python
 
@@ -80,11 +87,12 @@ Every node computes its result share:
     >>> result_share_at_node_1 = nodes[1].compute(signature, broadcast)
     >>> result_share_at_node_2 = nodes[2].compute(signature, broadcast)
 
-The result can be reconstructed via summation from the result shares received from the nodes:
+Finally, the result can be reconstructed via summation from the result shares received from the nodes:
 
 .. code-block:: python
 
-    >>> sum([result_share_at_node_0, result_share_at_node_1, result_share_at_node_2])
+    >>> int(sum([result_share_at_node_0, result_share_at_node_1, result_share_at_node_2]))
+    26
 
 Development
 -----------

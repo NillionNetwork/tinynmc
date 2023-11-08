@@ -33,42 +33,72 @@ class node:
 
     Suppose that a protocol instance involves three contributors (parties
     submitting private input values) and three nodes (parties performing the
-    computation).
+    computation). The node objects would be instantiated locally by each
+    of the parties performing the computation.
 
     >>> nodes = [node(), node(), node()]
 
-    Given a signature for the expression to be computed, it is possible to
-    simulate the preprocessing phase.
+    Any sum-of-products expression that can be computed can be described by
+    a *signature*: a list of integers in which each entry specifies the number
+    of factors (*i.e.*, multiplicands) in each term (*i.e.*, addend of the
+    overall summation). For example, suppose the expression to be computed is
+    ``(1 * 2 * 3) + (4 * 5)``. This would correspond to the signature below
+    because the term ``(1 * 2 * 3)`` has three factors and the term ``(4 * 5)``
+    has two factors.
 
     >>> signature = [3, 2]
-    >>> preprocessing(signature, nodes)
+
+    All contributors must agree on the signature, and the signature must be
+    shared with the nodes. The preprocessing phase that the nodes must execute
+    (using some existing MPC protocol such as
+    `SPDZ <https://eprint.iacr.org/2011/535>`__) can be simulated using the
+    :obj:`preprocess` function.
     
-    Each contributor can then generate request its masked factors from the
-    nodes.
+    >>> preprocess(signature, nodes)
+
+    The contributors must also agree on which factors in the sum-of-products
+    each of them is submitting to the overall computation. In this example,
+    we assume that each factor in the workflow is contributed by one of three
+    contributors **a**, **b**, or **c**, with the ownership pattern
+    ``(a * b * c) + (a * b)``. Each factor is referenced by the contributors
+    according to its ``(term_index, factor_index)`` coordinate within the
+    overall expression: ``((0, 0) * (0, 1)) + ((1, 0) * (1, 1) * (1, 2))``.
+
+    Agreeing on the above, each contributor can then request from the nodes
+    the multiplicative shares of the masks it must use to protect its values
+    (organized by the coordinates of the inputs to which they correspond).
 
     >>> coords_to_values_a = {(0, 0): 1, (1, 0): 4}
-    >>> masks_from_nodes_to_a = [node.masks(coords_to_values_a.keys()) for node in nodes]
-    >>> masked_factors_a = masked_factors(coords_to_values_a, masks_from_nodes_to_a)
+    >>> masks_from_nodes_a = [node.masks(coords_to_values_a.keys()) for node in nodes]
 
     >>> coords_to_values_b = {(0, 1): 2, (1, 1): 5}
-    >>> masks_from_nodes_to_b = [node.masks(coords_to_values_b.keys()) for node in nodes]
-    >>> masked_factors_b = masked_factors(coords_to_values_b, masks_from_nodes_to_b)
+    >>> masks_from_nodes_b = [node.masks(coords_to_values_b.keys()) for node in nodes]
 
     >>> coords_to_values_c = {(0, 2): 3}
-    >>> masks_from_nodes_to_c = [node.masks(coords_to_values_c.keys()) for node in nodes]
-    >>> masked_factors_c = masked_factors(coords_to_values_c, masks_from_nodes_to_c)
-    
-    Each contributor broadcasts all of its masked factors to every node, so every
-    node receives all the masked factors from all the contributors and performs
-    its computation.
+    >>> masks_from_nodes_c = [node.masks(coords_to_values_c.keys()) for node in nodes]
+
+    Each node can then mask its input values using the masks via the
+    :obj:`masked_factors` function. This function organizes the process of
+    masking the input values at each coordinate using the mask for that
+    coordinate. The output of this function consists of the *masked factors*
+    that are safe to broadcast to the nodes.
+
+    >>> masked_factors_a = masked_factors(coords_to_values_a, masks_from_nodes_a)
+    >>> masked_factors_b = masked_factors(coords_to_values_b, masks_from_nodes_b)
+    >>> masked_factors_c = masked_factors(coords_to_values_c, masks_from_nodes_c)
+
+    Then, each contributor broadcasts *all* of its masked factors to *every* node.
+    Every node receives *all* the masked factors from *all* the contributors.
+    Then, each node can locally perform its computation to obtain its share of
+    the overall result.
 
     >>> broadcast = [masked_factors_a, masked_factors_b, masked_factors_c]
     >>> result_share_at_node_0 = nodes[0].compute(signature, broadcast)
     >>> result_share_at_node_1 = nodes[1].compute(signature, broadcast)
     >>> result_share_at_node_2 = nodes[2].compute(signature, broadcast)
 
-    The result can be reconstructed via summation from the result shares
-    received from the nodes.
+    Finally, the result can be reconstructed via simple summation from the
+    result shares received from the nodes.
 
     >>> int(sum([result_share_at_node_0, result_share_at_node_1, result_share_at_node_2]))
     26
@@ -128,7 +158,7 @@ class node:
             for (term_index, factor_quantity) in enumerate(signature)
         ])
 
-def preprocessing(signature, nodes):
+def preprocess(signature, nodes):
     """
     Simulate a preprocessing phase for the supplied signature and collection
     of nodes.
