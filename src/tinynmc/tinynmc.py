@@ -4,28 +4,44 @@ Minimal pure-Python implementation of a secure multi-party computation
 a non-interactive computation phase.
 """
 from __future__ import annotations
+from typing import Sequence, Iterable
 import doctest
 import operator
 import functools
 import secrets
-from modulo import mod
+from modulo import modulo
 
-def _prod(iterable):
+_DEFAULT_P = 340282366920938463463374607431768196007
+_DEFAULT_Q = 170141183460469231731687303715884098003
+_DEFAULT_G = 205482397601703717038466705921080247554
+
+def _prod(iterable: Iterable):
+    """
+    Multiplication aggregation operation (counterpart to ``sum``).
+    """
     return functools.reduce(operator.mul, iterable)
 
-def _merge(d, d_):
+def _merge(d: dict, d_: dict) -> dict:
+    """
+    Binary operation to merge two dictionaries that is backwards-compatible
+    with Python 3.7.
+    """
     d__ = {}
     d__.update(d)
     d__.update(d_)
     return d__
 
-def _shares(s, modulus, quantity) -> list[mod]:
-    ss = []
+def _shares(value: modulo, modulus: int, quantity: int) -> Sequence[modulo]:
+    """
+    Return ``quantity`` additive secret shares (modulo ``modulus``)
+    of ``value``.
+    """
+    shares = []
     for _ in range(quantity - 1):
         # Use rejection sampling to obtain a share value.
-        ss.append(mod(secrets.randbelow(modulus), modulus))
+        shares.append(modulo(secrets.randbelow(modulus), modulus))
 
-    return [mod(s, modulus) - sum(ss)] + ss
+    return [modulo(value, modulus) - sum(shares)] + shares
 
 class node:
     """
@@ -104,17 +120,22 @@ class node:
     >>> int(sum([result_share_at_node_0, result_share_at_node_1, result_share_at_node_2]))
     26
     """
-    def __init__(self):
+    def __init__(self: node):
         """
         Instantiate an object that maintains the state of a node.
         """
-        self.q = 170141183460469231731687303715884098003
-        self.p = 340282366920938463463374607431768196007
-        self.g = mod(205482397601703717038466705921080247554, self.p)
+        self.q = _DEFAULT_Q
+        self.p = _DEFAULT_P
+        self.g = modulo(_DEFAULT_G, self.p)
         self._masks = None
         self._shares = None
 
-    def correlate(self, signature, exponents, shares_):
+    def correlate(
+            self: node,
+            signature: Sequence[int],
+            exponents: Sequence[modulo],
+            shares_: Sequence[modulo]
+        ):
         """
         Generate masks for the given signature from the existing mask exponents.
         """
@@ -133,20 +154,32 @@ class node:
             for factor_index in range(factor_count):
                 self._masks[(term_index, factor_index)] = factors[factor_index]
 
-    def masks(self, coords_from_dealer) -> dict[tuple[int, int], mod]:
+    def masks(
+            self: node,
+            coordinates_from_contributor: Sequence[tuple[int, int]]
+        ) -> dict[tuple[int, int], modulo]:
         """
         Return a dictionary mapping a set of ``(term_index, factor_index)``
         coordinates to their corresponding masks.
         """
-        return {coords: self._masks[coords] for coords in coords_from_dealer}
+        return {
+            coordinates: self._masks[coordinates]
+            for coordinates in coordinates_from_contributor
+        }
 
-    def compute(self, signature, mfss):
+    def compute(
+            self: node,
+            signature: Sequence[int],
+            masked_factors_from_contributors: Sequence[dict[tuple[int, int], modulo]]
+        ):
         """
         Compute a secret share of the result (of evaluating the expression).
         """
-        # Combine all submitted coordinate-particle pair dictionaries
+        # Combine all submitted (coordinate, masked factor) pair dictionaries
         # into a single dictionary.
-        mfs = functools.reduce(_merge, mfss)
+        # pylint: disable=redefined-outer-name
+        masked_factors: dict[tuple[int, int], modulo] = \
+            functools.reduce(_merge, masked_factors_from_contributors)
 
         # Compute this node's share of the overall sum of products.
         # pylint: disable=consider-using-generator
@@ -154,49 +187,56 @@ class node:
             self._shares[term_index]
             *
             _prod(
-                mfs[(term_index, factor_index)]
+                masked_factors[(term_index, factor_index)]
                 for factor_index in range(factor_quantity)
             )
             for (term_index, factor_quantity) in enumerate(signature)
         ])
 
-def preprocess(signature, nodes):
+def preprocess(signature: Sequence[int], nodes: Sequence[node]):
     """
     Simulate a preprocessing phase for the supplied signature and collection
     of nodes.
     """
-    q = 170141183460469231731687303715884098003
-    p = 340282366920938463463374607431768196007
-    g = mod(205482397601703717038466705921080247554, p)
+    q = _DEFAULT_Q
+    p = _DEFAULT_P
+    g = modulo(_DEFAULT_G, p)
 
-    randoms = [
+    mask_exponent = [
         secrets.randbelow(q * 2) # Use rejection sampling.
         for term_index in range(len(signature))
     ]
     node_to_exponent_shares = list(zip(*[
-        _shares(randoms[term_index], q * 2, len(nodes))
+        _shares(mask_exponent[term_index], q * 2, len(nodes))
         for term_index in range(len(signature))
     ]))
-    node_to_factor_shares = list(zip(*[
+    node_to_mask_shares = list(zip(*[
         _shares(int(g ** exponent), p, len(nodes))
-        for exponent in randoms
+        for exponent in mask_exponent
     ]))
 
     for (i, n) in enumerate(nodes):
-        n.correlate(signature, node_to_exponent_shares[i], node_to_factor_shares[i])
+        n.correlate(
+            signature,
+            node_to_exponent_shares[i],
+            node_to_mask_shares[i]
+        )
 
-def masked_factors(coords_to_values, masks_from_nodes):
+def masked_factors(
+        coordinates_to_values: dict[tuple[int, int], int],
+        masks_from_nodes: Iterable[dict[tuple[int, int], modulo]]
+    ) -> dict[tuple[int, int], modulo]:
     """
     Build up dictionary mapping each coordinate to a value that is
     masked using the product of the masks (from all nodes) at that
     coordinate.
     """
     return {
-        coords: value * _prod([
-            coords_to_masks[coords]
-            for coords_to_masks in masks_from_nodes
+        coordinates: value * _prod([
+            coordinates_to_masks[coordinates]
+            for coordinates_to_masks in masks_from_nodes
         ])
-        for (coords, value) in coords_to_values.items()
+        for (coordinates, value) in coordinates_to_values.items()
     }
 
 if __name__ == '__main__':
