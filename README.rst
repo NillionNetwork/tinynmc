@@ -2,7 +2,7 @@
 tinynmc
 =======
 
-Minimal pure-Python implementation of a secure multi-party computation (MPC) protocol for evaluating arithmetic sum-of-products expressions via a non-interactive computation phase.
+Minimal pure-Python implementation of a secure multi-party computation (MPC) `protocol for evaluating arithmetic sum-of-products expressions <https://nillion.pub/sum-of-products-lsss-non-interactive.pdf>`__ via a non-interactive computation phase.
 
 |pypi| |readthedocs| |actions| |coveralls|
 
@@ -41,7 +41,7 @@ The library can be imported in the usual way:
 Basic Example
 ^^^^^^^^^^^^^
 
-This example involves three contributors **a**, **b**, and **c** (parties submitting private input values) and three nodes **0**, **1**, and **2** (parties performing a computation):
+This example involves three contributors ``a``, ``b``, and ``c`` (parties submitting private input values) and three nodes ``0``, ``1``, and ``2`` (parties performing a computation):
 
 .. code-block:: python
 
