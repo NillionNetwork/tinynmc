@@ -2,7 +2,7 @@
 tinynmc
 =======
 
-Minimal pure-Python implementation of a secure multi-party computation (MPC) `protocol for evaluating arithmetic sum-of-products expressions <https://nillion.pub/sum-of-products-lsss-non-interactive.pdf>`__ via a non-interactive computation phase.
+Minimal pure-Python implementation of a secure multi-party computation (MPC) `protocol for evaluating arithmetic sum-of-products expressions <https://eprint.iacr.org/2023/1740>`__ via a non-interactive computation phase.
 
 |pypi| |readthedocs| |actions| |coveralls|
 
@@ -53,7 +53,7 @@ The overall sum-of-products expression being computed is ``(1 * 2 * 3) + (4 * 5)
 
     >>> signature = [3, 2]
 
-The signature must be shared with every node so that the nodes can collectively perform the preprocessing phase (this can be accomplished using any MPC protocol that supports multiplication of secret-shared values, such as the `SPDZ <https://eprint.iacr.org/2011/535>`__ protocol that is implemented as part of `TinySMPC <https://github.com/kennysong/tinysmpc>`__ library):
+The signature must be shared with every node so that the nodes can collectively perform the preprocessing phase; this can be accomplished using any MPC protocol that supports multiplication of secret-shared values, such as the `SPDZ <https://eprint.iacr.org/2011/535>`__ protocol (a similarly simple implementation of which can be seen in the `TinySMPC <https://github.com/kennysong/tinysmpc>`__ library):
 
 .. code-block:: python
 

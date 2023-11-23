@@ -1,6 +1,6 @@
 [project]
 name = "tinynmc"
-version = "0.1.0"
+version = "0.2.0"
 description = """\
     Minimal pure-Python implementation of a secure multi-party computation \
     (MPC) protocol for evaluating arithmetic sum-of-products expressions via \
