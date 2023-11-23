@@ -15,7 +15,7 @@ _DEFAULT_P = 340282366920938463463374607431768196007
 _DEFAULT_Q = 170141183460469231731687303715884098003
 _DEFAULT_G = 205482397601703717038466705921080247554
 
-def _prod(iterable: Iterable):
+def _prod(iterable: Iterable[modulo]) -> modulo:
     """
     Multiplication aggregation operation (counterpart to ``sum``).
     """
@@ -31,12 +31,12 @@ def _merge(d: dict, d_: dict) -> dict:
     d__.update(d_)
     return d__
 
-def _shares(value: modulo, modulus: int, quantity: int) -> Sequence[modulo]:
+def _shares(value: modulo, modulus: int, quantity: int) -> list[modulo]:
     """
     Return ``quantity`` additive secret shares (modulo ``modulus``)
     of ``value``.
     """
-    shares = []
+    shares: list[modulo] = []
     for _ in range(quantity - 1):
         # Use rejection sampling to obtain a share value.
         shares.append(modulo(secrets.randbelow(modulus), modulus))
@@ -67,9 +67,9 @@ class node:
 
     All contributors must agree on the signature, and the signature must be
     shared with the nodes. The preprocessing phase that the nodes must execute
-    (using some existing MPC protocol such as
-    `SPDZ <https://eprint.iacr.org/2011/535>`__) can be simulated using the
-    :obj:`preprocess` function.
+    (using an existing MPC protocol that supports multiplication operations on
+    secret-shared values, such as `SPDZ <https://eprint.iacr.org/2011/535>`__)
+    can be simulated using the :obj:`preprocess` function.
     
     >>> preprocess(signature, nodes)
 
@@ -84,6 +84,8 @@ class node:
     Agreeing on the above, each contributor can then request from the nodes
     the multiplicative shares of the masks it must use to protect its values
     (organized by the coordinates of the inputs to which they correspond).
+    Each node constructs responses to such requests using the :obj:`node.masks`
+    method.
 
     >>> coords_to_values_a = {(0, 0): 1, (1, 0): 4}
     >>> masks_from_nodes_a = [node.masks(coords_to_values_a.keys()) for node in nodes]
@@ -106,8 +108,8 @@ class node:
 
     Then, each contributor broadcasts *all* of its masked factors to *every* node.
     Every node receives *all* the masked factors from *all* the contributors.
-    Then, each node can locally perform its computation to obtain its share of
-    the overall result.
+    Then, each node can locally perform its computation (using the
+    :obj:`node.compute` method) to obtain its share of the overall result.
 
     >>> broadcast = [masked_factors_a, masked_factors_b, masked_factors_c]
     >>> result_share_at_node_0 = nodes[0].compute(signature, broadcast)
@@ -136,8 +138,19 @@ class node:
             exponents: Sequence[modulo],
             shares_: Sequence[modulo]
         ):
+        # pylint: disable=anomalous-backslash-in-string # Allow underscore for Sphinx.
         """
         Generate masks for the given signature from the existing mask exponents.
+        This method is used by the :obj:`preprocess` function to prepare the
+        correlated masks and shares that are maintained by each node.
+
+        :param signature: Signature of the sum-of-products expression to be
+            evaluated by the nodes.
+        :param exponents: Mask exponents (one per term) to be used for
+            constructing masks for contributed factors.
+        :param shares\_: Additive shares of the overall mask for each term
+            (to be stored locally by each node and used during the computation
+            phase).
         """
         self._shares = shares_
         self._masks = {}
@@ -161,6 +174,10 @@ class node:
         """
         Return a dictionary mapping a set of ``(term_index, factor_index)``
         coordinates to their corresponding masks.
+
+        :param coordinates_from_contributor: Collection of coordinates
+            corresponding to particular factors in an expression that
+            are from an individual contributor.
         """
         return {
             coordinates: self._masks[coordinates]
@@ -173,7 +190,15 @@ class node:
             masked_factors_from_contributors: Sequence[dict[tuple[int, int], modulo]]
         ):
         """
-        Compute a secret share of the result (of evaluating the expression).
+        Compute a secret share of the result of evaluating the sum-of-products
+        expression.
+
+        :param signature: Signature of the sum-of-products expression to be
+            evaluated by the nodes.
+        :param masked_factors_from_contributors: Collection of mappings (one
+            per contributor), where each mapping associates the coordinates of
+            an expression with the masked factors for that coordinate received
+            from a specific node.
         """
         # Combine all submitted (coordinate, masked factor) pair dictionaries
         # into a single dictionary.
@@ -197,6 +222,23 @@ def preprocess(signature: Sequence[int], nodes: Sequence[node]):
     """
     Simulate a preprocessing phase for the supplied signature and collection
     of nodes.
+
+    :param signature: Signature of the sum-of-products expression to be
+        evaluated by the nodes.
+    :param nodes: Collection of nodes that will compute the sum-of-products
+        expression.
+
+    In full implementations of a protocol instance, a scheme that supports
+    multiplication operations involving secret-shared values (such as
+    `SPDZ <https://eprint.iacr.org/2011/535>`__) would be used to prepare
+    the correlated exponent and mask shares across all nodes.
+
+    >>> nodes = [node(), node(), node()]
+    >>> signature = [1, 2]
+    >>> preprocess(signature, nodes)
+
+    After this function is executed, the supplied nodes are ready to respond
+    to requests for masks from contributors.
     """
     q = _DEFAULT_Q
     p = _DEFAULT_P
@@ -227,9 +269,39 @@ def masked_factors(
         masks_from_nodes: Iterable[dict[tuple[int, int], modulo]]
     ) -> dict[tuple[int, int], modulo]:
     """
-    Build up dictionary mapping each coordinate to a value that is
+    Build up a dictionary that maps each coordinate to a value that is
     masked using the product of the masks (from all nodes) at that
     coordinate.
+
+    :param coordinates_to_values: Mapping from the coordinates of an
+        expression to the corresponding values (all originating from one
+        contributor).
+    :param masks_from_nodes: Iterable of mappings (one per node), where
+        each mapping associates the coordinates of an expression with the
+        masks for that coordinate obtained from a specific node.
+
+    A contributor applies this method to their input values in order
+    to prepare them for broadcast to the nodes. For example, suppose
+    that there are three nodes and a contributor is supplying two
+    of the factors in an expression with the signature below.
+
+    >>> nodes = [node(), node(), node()]
+    >>> signature = [1, 2]
+    >>> preprocess(signature, nodes)
+
+    The contributor would build up a mapping from the coordinates
+    for which it is contributing values to the values themselves, and
+    then would obtain the corresponding masks for those values from
+    each of the nodes.
+
+    >>> coords_to_values = {(0, 0): 123, (1, 0): 456}
+    >>> masks_from_nodes = [node.masks(coords_to_values.keys()) for node in nodes]
+
+    Finally, the contributor would supply to this function both the mapping
+    to its values and the mappings to the masks. This would yield the masked
+    factors.
+
+    >>> masked_factors = masked_factors(coords_to_values, masks_from_nodes)
     """
     return {
         coordinates: value * _prod([
