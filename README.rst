@@ -14,16 +14,16 @@ Minimal pure-Python implementation of a secure multi-party computation (MPC) `pr
    :target: https://tinynmc.readthedocs.io/en/latest/?badge=latest
    :alt: Read the Docs documentation status.
 
-.. |actions| image:: https://github.com/nillion-oss/tinynmc/workflows/lint-test-cover-docs/badge.svg
-   :target: https://github.com/nillion-oss/tinynmc/actions/workflows/lint-test-cover-docs.yml
+.. |actions| image:: https://github.com/NillionNetwork/tinynmc/workflows/lint-test-cover-docs/badge.svg
+   :target: https://github.com/NillionNetwork/tinynmc/actions/workflows/lint-test-cover-docs.yml
    :alt: GitHub Actions status.
 
-.. |coveralls| image:: https://coveralls.io/repos/github/nillion-oss/tinynmc/badge.svg?branch=main
-   :target: https://coveralls.io/github/nillion-oss/tinynmc?branch=main
+.. |coveralls| image:: https://coveralls.io/repos/github/NillionNetwork/tinynmc/badge.svg?branch=main
+   :target: https://coveralls.io/github/NillionNetwork/tinynmc?branch=main
    :alt: Coveralls test coverage summary.
 
 .. |colab| image:: https://colab.research.google.com/assets/colab-badge.svg
-   :target: https://colab.research.google.com/github/nillion-oss/tinynmc/blob/main/notebooks/basic.ipynb
+   :target: https://colab.research.google.com/github/NillionNetwork/tinynmc/blob/main/notebooks/basic.ipynb
    :alt: Open notebook in Google Colab.
 
 Installation and Usage
@@ -144,7 +144,7 @@ Style conventions are enforced using `Pylint <https://pylint.readthedocs.io>`__:
 
 Contributions
 ^^^^^^^^^^^^^
-In order to contribute to the source code, open an issue or submit a pull request on the `GitHub page <https://github.com/nillion-oss/tinynmc>`__ for this library.
+In order to contribute to the source code, open an issue or submit a pull request on the `GitHub page <https://github.com/NillionNetwork/tinynmc>`__ for this library.
 
 Versioning
 ^^^^^^^^^^

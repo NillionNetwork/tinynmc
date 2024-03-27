@@ -18,7 +18,7 @@ dependencies = [
 ]
 
 [project.urls]
-Repository = "https://github.com/nillion-oss/tinynmc"
+Repository = "https://github.com/NillionNetwork/tinynmc"
 Documentation = "https://tinynmc.readthedocs.io"
 
 [project.optional-dependencies]
